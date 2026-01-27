@@ -1,0 +1,14 @@
+# Environment secrets (never commit!)
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Airflow
+airflow_logs/
+airflow_plugins/
+
+# Docker
+pg_data/
