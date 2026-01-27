@@ -32,19 +32,19 @@ def load_cache():
 
 def build_event(products, users):
     event_type = random.choice(["click", "search", "purchase"])
-    user = random.choice(users) if users else {"id": None}
-    product = random.choice(products) if products else {"id": None, "price": None}
+    user = random.choice(users) if users else {"user_id": None}
+    product = random.choice(products) if products else {"product_id": None, "price": None}
 
     base = {
         "event_id": str(uuid.uuid4()),
         "event_type": event_type,
         "event_ts": utc_now_iso(),
-        "user_id": user.get("id"),
+        "user_id": user.get("user_id"),
     }
 
     if event_type == "click":
         base.update({
-            "product_id": product.get("id"),
+            "product_id": product.get("product_id"),
             "price_amount": product.get("price"),
             "currency": "USD",
             "action": "product_click",
@@ -52,7 +52,7 @@ def build_event(products, users):
     elif event_type == "search":
         query = random.choice([
             product.get("category"),
-            (product.get("title") or "").split(" ")[0],
+            (product.get("name") or "").split(" ")[0],
             "sale",
             "new",
         ])
@@ -65,7 +65,7 @@ def build_event(products, users):
         price = product.get("price") or 0
         base.update({
             "order_id": random.randint(1000, 9999),
-            "product_id": product.get("id"),
+            "product_id": product.get("product_id"),
             "quantity": quantity,
             "price_amount": price,
             "currency": "USD",

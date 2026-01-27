@@ -48,13 +48,13 @@ def transform_and_merge() -> None:
         """
         INSERT INTO dim_products (product_id, title, category, price, currency)
         SELECT DISTINCT
-            (payload->>'id')::INT,
-            payload->>'title',
+            (payload->>'product_id')::INT,
+            payload->>'name',
             payload->>'category',
             NULLIF(payload->>'price', '')::NUMERIC,
             'USD'
         FROM raw_products
-        WHERE (payload->>'id') IS NOT NULL
+        WHERE (payload->>'product_id') IS NOT NULL
         ON CONFLICT (product_id) DO UPDATE SET
             title = EXCLUDED.title,
             category = EXCLUDED.category,
@@ -68,13 +68,13 @@ def transform_and_merge() -> None:
         """
         INSERT INTO dim_users (user_id, name, email, city, country)
         SELECT DISTINCT
-            (payload->>'id')::INT,
-            COALESCE(payload->>'name', (payload->'name'->>'firstname' || ' ' || payload->'name'->>'lastname')),
+            (payload->>'user_id')::INT,
+            payload->>'username',
             payload->>'email',
-            COALESCE(payload->'address'->>'city', payload->>'city'),
-            COALESCE(payload->'address'->>'country', payload->>'country')
+            payload->>'city',
+            payload->>'country'
         FROM raw_users
-        WHERE (payload->>'id') IS NOT NULL
+        WHERE (payload->>'user_id') IS NOT NULL
         ON CONFLICT (user_id) DO UPDATE SET
             name = EXCLUDED.name,
             email = EXCLUDED.email,
@@ -88,14 +88,14 @@ def transform_and_merge() -> None:
         """
         WITH expanded AS (
             SELECT
-                (payload->>'id')::INT AS order_id,
-                (payload->>'userId')::INT AS user_id,
+                (payload->>'order_id')::INT AS order_id,
+                (payload->>'user_id')::INT AS user_id,
                 COALESCE((payload->>'timestamp')::timestamptz, NOW()) AS event_ts,
                 jsonb_array_elements(
                     COALESCE(payload->'items', payload->'products', '[]'::jsonb)
                 ) AS item
             FROM raw_orders
-            WHERE (payload->>'id') IS NOT NULL
+            WHERE (payload->>'order_id') IS NOT NULL
         )
         INSERT INTO fact_orders (
             order_id, user_id, product_id, quantity, price_amount, currency, event_type, event_ts, date_id
