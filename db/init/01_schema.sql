@@ -1,3 +1,5 @@
+\connect warehouse;
+
 -- Star schema placeholders. To be refined with real columns.
 
 -- Dimension tables
