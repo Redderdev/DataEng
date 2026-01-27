@@ -50,11 +50,11 @@ services:
     container_name: de_airflow_init
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres:5432/airflow
-      AIRFLOW__CORE__FERNET_KEY: ""  # set via .env
-      AIRFLOW__WEBSERVER__SECRET_KEY: ""  # set via .env
       API_BASE_URL: https://fake-store-api.mock.beeceptor.com/api
       WAREHOUSE_DSN: postgresql://postgres:postgres@postgres:5432/warehouse
     entrypoint: ["/bin/bash", "-c"]
@@ -71,11 +71,11 @@ services:
     container_name: de_airflow_scheduler
     depends_on:
       - airflow-init
+    env_file:
+      - .env
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres:5432/airflow
-      AIRFLOW__CORE__FERNET_KEY: ""  # set via .env
-      AIRFLOW__WEBSERVER__SECRET_KEY: ""  # set via .env
       API_BASE_URL: https://fake-store-api.mock.beeceptor.com/api
       WAREHOUSE_DSN: postgresql://postgres:postgres@postgres:5432/warehouse
     command: scheduler
@@ -89,11 +89,11 @@ services:
     container_name: de_airflow_webserver
     depends_on:
       - airflow-init
+    env_file:
+      - .env
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres:5432/airflow
-      AIRFLOW__CORE__FERNET_KEY: ""  # set via .env
-      AIRFLOW__WEBSERVER__SECRET_KEY: ""  # set via .env
       API_BASE_URL: https://fake-store-api.mock.beeceptor.com/api
       WAREHOUSE_DSN: postgresql://postgres:postgres@postgres:5432/warehouse
     command: webserver
