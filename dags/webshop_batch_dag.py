@@ -83,6 +83,45 @@ def transform_and_merge() -> None:
         """
     )
 
+    # Ensure all dim keys referenced by orders exist (prevents FK errors on fact load)
+    cur.execute(
+        """
+        WITH order_items AS (
+            SELECT DISTINCT
+                (payload->>'user_id')::INT AS user_id,
+                COALESCE((item->>'product_id')::INT, (item->>'productId')::INT) AS product_id
+            FROM raw_orders
+            CROSS JOIN LATERAL jsonb_array_elements(
+                COALESCE(payload->'items', payload->'products', '[]'::jsonb)
+            ) AS item
+            WHERE (payload->>'user_id') IS NOT NULL
+        )
+        INSERT INTO dim_users (user_id)
+        SELECT DISTINCT user_id
+        FROM order_items
+        WHERE user_id IS NOT NULL
+        ON CONFLICT DO NOTHING;
+        """
+    )
+
+    cur.execute(
+        """
+        WITH order_items AS (
+            SELECT DISTINCT
+                COALESCE((item->>'product_id')::INT, (item->>'productId')::INT) AS product_id
+            FROM raw_orders
+            CROSS JOIN LATERAL jsonb_array_elements(
+                COALESCE(payload->'items', payload->'products', '[]'::jsonb)
+            ) AS item
+        )
+        INSERT INTO dim_products (product_id, title)
+        SELECT DISTINCT product_id, CONCAT('Unknown product ', product_id::TEXT)
+        FROM order_items
+        WHERE product_id IS NOT NULL
+        ON CONFLICT DO NOTHING;
+        """
+    )
+
     # Load orders into fact (one row per order line)
     cur.execute(
         """
